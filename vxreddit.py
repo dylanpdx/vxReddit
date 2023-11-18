@@ -168,10 +168,16 @@ def alternateJSON():
         "version": "1.0"
     }
 
+
 @app.route('/<path:sub_path>')
 def embedReddit(sub_path):
     post_link = "https://www.reddit.com/" + sub_path
 
+    r = requests.get(post_link, allow_redirects=False)
+    post_link = r.headers['location']
+    if "?" in post_link:
+        post_link = post_link.split("?")[0]
+    
     return embed_reddit(post_link)
 
 if __name__ == "__main__":
