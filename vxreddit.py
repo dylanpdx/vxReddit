@@ -76,6 +76,8 @@ def getVideoFromPostURL(url):
         vxData["video_height"] = post_info["media"]["reddit_video"]["height"]
         # get audio url
         audio_url = post_info["media"]["reddit_video"]["fallback_url"].split("DASH_")[0]+"DASH_AUDIO_128.mp4"
+        if "has_audio" in post_info["media"]["reddit_video"] and not post_info["media"]["reddit_video"]["has_audio"]:
+            audio_url = None
         vxData["audio_url"] = audio_url
         # get thumbnail
         vxData["thumbnail_url"] = post_info["preview"]["images"][0]["source"]["url"].replace("&amp;","&")
@@ -113,11 +115,13 @@ def get_video():
     # get video_url and audio_url from query string
     video_url = request.args.get('video_url')
     audio_url = request.args.get('audio_url')
-    if video_url is None or audio_url is None:
+    if video_url is None:
         abort (400)
     # check if video_url and audio_url are valid
-    if not video_url.startswith("https://v.redd.it/") or not audio_url.startswith("https://v.redd.it/"):
+    if not video_url.startswith("https://v.redd.it/") or (audio_url is not None and not audio_url.startswith("https://v.redd.it/")):
         abort (400)
+    if audio_url is None:
+        return redirect(video_url)
     if config.currentConfig["MAIN"]["videoConversion"] == "local":
         # combine video and audio into one file using ffmpeg
         b64 = videoCombiner.generateVideo(video_url,audio_url)
@@ -147,7 +151,10 @@ def embed_reddit(post_link):
     elif videoInfo["post_type"] == "link":
         return redirect(videoInfo["link_url"]) # this might need to be improved later
     elif videoInfo["post_type"] == "video":
-        convertedUrl = "https://"+config.currentConfig["MAIN"]["domainName"]+"/redditvideo.mp4?video_url="+videoInfo["video_url"]+"&audio_url="+videoInfo["audio_url"]
+        if videoInfo["audio_url"] is None:
+            convertedUrl = videoInfo["video_url"]
+        else:
+            convertedUrl = "https://"+config.currentConfig["MAIN"]["domainName"]+"/redditvideo.mp4?video_url="+videoInfo["video_url"]+"&audio_url="+videoInfo["audio_url"]
         return render_template("video.html", vxData=videoInfo,appname=config.currentConfig["MAIN"]["appName"], statsLine=statsLine, domainName=config.currentConfig["MAIN"]["domainName"],mp4URL=convertedUrl)
     else:
         return videoInfo
