@@ -5,7 +5,7 @@ import requests
 import videoCombiner
 import base64
 import io
-
+import urllib.parse
 app = Flask(__name__)
 CORS(app)
 
@@ -118,13 +118,16 @@ def get_video():
     # check if video_url and audio_url are valid
     if not video_url.startswith("https://v.redd.it/") or not audio_url.startswith("https://v.redd.it/"):
         abort (400)
-    if config.currentConfig["videoConversion"] == "local":
+    if config.currentConfig["MAIN"]["videoConversion"] == "local":
         # combine video and audio into one file using ffmpeg
         b64 = videoCombiner.generateVideo(video_url,audio_url)
         # return video file
         return send_file(io.BytesIO(base64.b64decode(b64)), mimetype='video/mp4')
     else:
-        renderer=config.currentConfig["videoConversion"]
+        renderer=config.currentConfig["MAIN"]["videoConversion"]
+        # url encode video_url and audio_url
+        video_url = urllib.parse.quote(video_url, safe='')
+        audio_url = urllib.parse.quote(audio_url, safe='')
         return redirect(f"{renderer}?video_url={video_url}&audio_url={audio_url}",code=307)
 
 def embed_reddit(post_link):
