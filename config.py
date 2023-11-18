@@ -10,6 +10,7 @@ currentConfig["MAIN"]={
     "embedColor": "#EE1D52",
     "repoURL":"https://github.com/dylanpdx/vxReddit",
     "domainName":"vxreddit.com",
+    "videoConversion":"local",
 }
 
 if 'RUNNING_SERVERLESS' in os.environ and os.environ['RUNNING_SERVERLESS'] == '1':
@@ -18,6 +19,7 @@ if 'RUNNING_SERVERLESS' in os.environ and os.environ['RUNNING_SERVERLESS'] == '1
         "embedColor": "#EE1D52",
         "repoURL":os.environ['REPO_URL'],
         "domainName":os.environ['DOMAINNAME'],
+        "videoConversion":os.environ['VIDEOCONVERSION'],
     }
 else:
     if os.path.exists("vxReddit.conf"):

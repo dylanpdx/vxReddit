@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, send_file
+from flask import Flask, render_template, request, redirect, send_file, abort
 from flask_cors import CORS
 import config
 import requests
@@ -113,10 +113,19 @@ def get_video():
     # get video_url and audio_url from query string
     video_url = request.args.get('video_url')
     audio_url = request.args.get('audio_url')
-    # combine video and audio into one file using ffmpeg
-    b64 = videoCombiner.generateVideo(video_url,audio_url)
-    # return video file
-    return send_file(io.BytesIO(base64.b64decode(b64)), mimetype='video/mp4')
+    if video_url is None or audio_url is None:
+        abort (400)
+    # check if video_url and audio_url are valid
+    if not video_url.startswith("https://v.redd.it/") or not audio_url.startswith("https://v.redd.it/"):
+        abort (400)
+    if config.currentConfig["videoConversion"] == "local":
+        # combine video and audio into one file using ffmpeg
+        b64 = videoCombiner.generateVideo(video_url,audio_url)
+        # return video file
+        return send_file(io.BytesIO(base64.b64decode(b64)), mimetype='video/mp4')
+    else:
+        renderer=config.currentConfig["videoConversion"]
+        return redirect(f"{renderer}?video_url={video_url}&audio_url={audio_url}",code=307)
 
 def embed_reddit(post_link):
     videoInfo = getVideoFromPostURL(post_link)
@@ -158,7 +167,6 @@ def alternateJSON():
 
 @app.route('/<path:sub_path>')
 def embedReddit(sub_path):
-    # Adapt this function to handle Reddit post URLs
     post_link = "https://www.reddit.com/" + sub_path
 
     return embed_reddit(post_link)
