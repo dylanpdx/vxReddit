@@ -1,0 +1,15 @@
+[Unit]
+Description=vxreddit WSGI service
+After=network.target
+
+[Service]
+User=dylan
+Group=dylan
+WorkingDirectory=/home/dylan/vxreddit
+Environment="PATH=/home/dylan/vxreddit/venv/bin"
+ExecStart=/home/dylan/vxreddit/venv/bin/uwsgi --ini vxreddit.ini
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

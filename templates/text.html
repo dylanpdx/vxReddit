@@ -1,0 +1,15 @@
+{% extends 'base.html' %} {% block head %}
+<meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+<meta content="{{ color }}" name="theme-color" />
+<meta property="og:site_name" content="{{ appname }}">
+
+<meta name="twitter:card" content="tweet" />
+<meta name="twitter:title" content="{{ vxData["title"] }}" />
+<meta name="twitter:creator" content="/u/{{ vxData["author"] }} on {{ vxData["subreddit"] }}" />
+
+<meta property="og:description" content="{{ vxData["text"] }}" />
+
+<link rel="alternate" href="https://{{ domainName }}/owoembed?text=/u/{{ vxData["author"] }} on {{ vxData["subreddit"] }} - {{ statsLine }}&url={{ vxData["url"] }}&provider_name={{ appname }}" type="application/json+oembed" title="{{ vxData["title"] }}">
+
+<meta http-equiv="refresh" content="0; url = {{ vxData["url"] }}" /> {% endblock %} {% block body %} Please wait...
+<a href="{{ vxData["url"] }}">Or click here.</a> {% endblock %}

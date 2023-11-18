@@ -1,0 +1,27 @@
+{% extends 'base.html' %} {% block head %}
+<meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+<meta content="{{ color }}" name="theme-color" />
+<meta property="og:site_name" content="{{ appname }}">
+
+<meta name="twitter:card" content="player" />
+<meta name="twitter:title" content="{{ vxData["title"] }}" />
+<meta name="twitter:creator" content="/u/{{ vxData["author"] }} on {{ vxData["subreddit"] }}" />
+<meta name="twitter:player:width" content="{{ vxData["video_width"] }}" />
+<meta name="twitter:player:height" content="{{ vxData["video_height"]  }}" />
+<meta name="twitter:player:stream" content="{{ mp4URL|safe }}" />
+<meta name="twitter:player:stream:content_type" content="video/mp4" />
+
+<meta property="og:url" content="{{ vxData["url"] }}" />
+<meta property="og:video" content="{{ mp4URL|safe }}" />
+<meta property="og:video:secure_url" content="{{ mp4URL|safe }}" />
+<meta property="og:video:type" content="video/mp4" />
+<meta property="og:video:width" content="{{ vxData["video_width"] }}" />
+<meta property="og:video:height" content="{{ vxData["video_height"] }}" />
+<meta property="og:image" content="{{ vxData["thumbnail_url"] }}" />
+
+<meta property="og:description" content="{{ vxData["text"] }}" />
+
+<link rel="alternate" href="https://{{ domainName }}/owoembed?text=/u/{{ vxData["author"] }} on {{ vxData["subreddit"] }} - {{ statsLine }}&url={{ vxData["url"] }}&provider_name={{ appname }}" type="application/json+oembed" title="{{ vxData["title"] }}">
+
+<meta http-equiv="refresh" content="0; url = {{ vxData["url"] }}" /> {% endblock %} {% block body %} Please wait...
+<a href="{{ vxData["url"] }}">Or click here.</a> {% endblock %}
