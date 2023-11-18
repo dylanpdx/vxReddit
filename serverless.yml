@@ -9,7 +9,7 @@ provider:
     EMBED_COLOR: \#EE1D52
     REPO_URL: https://github.com/dylanpdx/vxReddit
     DOMAINNAME: vxreddit.com
-
+    VIDEOCONVERSION: local
     RUNNING_SERVERLESS: 1
 
 package:
