@@ -105,7 +105,7 @@ def build_stats_line(post_info):
     upvotes = post_info["upvotes"]
     comments = post_info["comments"]
     awards = post_info["awards"]
-    stats_line = f"⬆ {upvotes} | 💬 {comments} | 🏆 {awards}"
+    stats_line = f"⬆️ {upvotes} | 💬 {comments} | 🏆 {awards}"
     return stats_line
 
 @app.route('/redditvideo.mp4')
