@@ -68,6 +68,7 @@ def getVideoFromPostURL(url):
         "comments": post_info["num_comments"],
         "awards": post_info["total_awards_received"],
         "created": post_info["created_utc"],
+        "permalink": "https://www.reddit.com"+post_info["permalink"]
     }
 
     if (post_type == "video"):
