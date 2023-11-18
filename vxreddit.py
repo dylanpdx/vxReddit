@@ -78,7 +78,7 @@ def getVideoFromPostURL(url):
         audio_url = post_info["media"]["reddit_video"]["fallback_url"].split("DASH_")[0]+"DASH_AUDIO_128.mp4"
         vxData["audio_url"] = audio_url
         # get thumbnail
-        vxData["thumbnail_url"] = post_info["thumbnail"]
+        vxData["thumbnail_url"] = post_info["preview"]["images"][0]["source"]["url"].replace("&amp;","&")
     elif (post_type == "image"):
         vxData["images"] = [post_info["url"]]
         # get thumbnail
@@ -174,7 +174,8 @@ def embedReddit(sub_path):
     post_link = "https://www.reddit.com/" + sub_path
 
     r = requests.get(post_link, allow_redirects=False)
-    post_link = r.headers['location']
+    if r.headers['location'].startswith("https"):
+        post_link = r.headers['location']
     if "?" in post_link:
         post_link = post_link.split("?")[0]
     

@@ -17,7 +17,7 @@
 <meta property="og:video:type" content="video/mp4" />
 <meta property="og:video:width" content="{{ vxData["video_width"] }}" />
 <meta property="og:video:height" content="{{ vxData["video_height"] }}" />
-<meta property="og:image" content="{{ vxData["thumbnail_url"] }}" />
+<meta property="og:image" content="{{ vxData["thumbnail_url"]|safe }}" />
 
 <meta property="og:description" content="{{ vxData["text"] }}" />
 
