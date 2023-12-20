@@ -8,6 +8,7 @@ import io
 import urllib.parse
 app = Flask(__name__)
 CORS(app)
+import os
 
 embed_user_agents = [
     "facebookexternalhit/1.1",
@@ -25,6 +26,11 @@ embed_user_agents = [
     "test"]
 
 
+r_headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0"}
+
+if os.environ.get('REDDIT_COOKIE') is not None:
+    r_headers['cookie'] = os.environ.get('REDDIT_COOKIE')
+
 def message(text):
     return render_template(
         'message.html', 
@@ -35,7 +41,7 @@ def message(text):
 def getVideoFromPostURL(url):
     url = url+".json"
     
-    response = requests.get(url,headers={'User-agent': 'Mozilla/5.0'})
+    response = requests.get(url,headers=r_headers)
     if response.status_code != 200:
         return None
     resp=response.json()
@@ -181,7 +187,7 @@ def alternateJSON():
 def embedReddit(sub_path):
     post_link = "https://www.reddit.com/" + sub_path
 
-    r = requests.get(post_link, allow_redirects=False)
+    r = requests.get(post_link, allow_redirects=False, headers=r_headers)
     if 'location' in r.headers and r.headers['location'].startswith("https"):
         post_link = r.headers['location']
     if "?" in post_link:
