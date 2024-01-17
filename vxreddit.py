@@ -87,7 +87,10 @@ def getVideoFromPostURL(url):
             audio_url = None
         vxData["audio_url"] = audio_url
         # get thumbnail
-        vxData["thumbnail_url"] = post_info["preview"]["images"][0]["source"]["url"].replace("&amp;","&")
+        if 'preview' in post_info
+            vxData["thumbnail_url"] = post_info["preview"]["images"][0]["source"]["url"].replace("&amp;","&")
+        else:
+            vxData["thumbnail_url"] = post_info["thumbnail"]
     elif (post_type == "image"):
         vxData["images"] = [post_info["url"]]
         # get thumbnail
