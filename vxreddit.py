@@ -9,6 +9,7 @@ import urllib.parse
 app = Flask(__name__)
 CORS(app)
 import os
+from discordWorkaround import fixUrlForDiscord
 
 embed_user_agents = [
     "facebookexternalhit/1.1",
@@ -144,7 +145,7 @@ def get_video():
         audio_url = urllib.parse.quote(audio_url, safe='')
         return redirect(f"{renderer}?video_url={video_url}&audio_url={audio_url}",code=307)
 
-def embed_reddit(post_link):
+def embed_reddit(post_link,isDiscordBot=False):
     videoInfo = getVideoFromPostURL(post_link)
     if videoInfo is None:
         return message("Failed to get data from Reddit")
@@ -164,7 +165,11 @@ def embed_reddit(post_link):
         if videoInfo["audio_url"] is None:
             convertedUrl = videoInfo["video_url"]
         else:
-            convertedUrl = "https://"+config.currentConfig["MAIN"]["domainName"]+"/redditvideo.mp4?video_url="+videoInfo["video_url"]+"&audio_url="+videoInfo["audio_url"]
+            encodedVideoURL = urllib.parse.quote(videoInfo["video_url"], safe='')
+            encodedAudioURL = urllib.parse.quote(videoInfo["audio_url"], safe='')
+            convertedUrl = "https://"+config.currentConfig["MAIN"]["domainName"]+"/redditvideo.mp4?video_url="+encodedVideoURL+"&audio_url="+encodedAudioURL
+        if isDiscordBot:
+            convertedUrl = fixUrlForDiscord(convertedUrl)
         return render_template("video.html", vxData=videoInfo,appname=config.currentConfig["MAIN"]["appName"], statsLine=statsLine, domainName=config.currentConfig["MAIN"]["domainName"],mp4URL=convertedUrl)
     else:
         return videoInfo
@@ -188,6 +193,7 @@ def alternateJSON():
 
 @app.route('/<path:sub_path>')
 def embedReddit(sub_path):
+    user_agent = request.headers.get('user-agent')
     post_link = "https://www.reddit.com/" + sub_path
 
     r = requests.get(post_link, allow_redirects=False, headers=r_headers)
@@ -196,7 +202,7 @@ def embedReddit(sub_path):
     if "?" in post_link:
         post_link = post_link.split("?")[0]
     
-    return embed_reddit(post_link)
+    return embed_reddit(post_link,'Discordbot' in user_agent)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0')
