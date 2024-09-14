@@ -88,8 +88,9 @@ def getVideoFromPostURL(url):
             audio_url = None
         else:
             for url in ['DASH_AUDIO_128.mp4','DASH_audio.mp4']:
-                audio_url = post_info["media"]["reddit_video"]["fallback_url"].split("DASH_")[0]+url
-                if requests.head(audio_url).status_code == 200:
+                testUrl = post_info["media"]["reddit_video"]["fallback_url"].split("DASH_")[0]+url
+                if requests.head(testUrl).status_code == 200:
+                    audio_url = testUrl
                     break
         vxData["audio_url"] = audio_url
         # get thumbnail
