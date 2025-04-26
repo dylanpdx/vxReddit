@@ -108,14 +108,19 @@ def getVideoFromPostURL(url):
             vxData["images"].append(post_info["media_metadata"][image]["s"]["u"])
         # get thumbnail
         vxData["thumbnail_url"] = post_info["thumbnail"]
-    elif (post_type == "link"):
-        vxData["link_url"] = post_info["url_overridden_by_dest"]
+    #elif (post_type == "link"):
+        #vxData["link_url"] = post_info["url_overridden_by_dest"]
         # get thumbnail
-        vxData["thumbnail_url"] = post_info["thumbnail"]
-    elif (post_type == "text"):
+        #vxData["thumbnail_url"] = post_info["thumbnail"]
+    else:
         vxData["text"] = post_info["selftext"]
         # get thumbnail
         vxData["thumbnail_url"] = post_info["thumbnail"]
+        if vxData["text"] == "" and vxData["title"] != "":
+            vxData["text"] = post_info["title"]
+        if vxData["post_type"] == "link" and vxData["url"] != "":
+            url=vxData["url"]
+            vxData["text"] = f"【🌐 {url} 】\n\n"+vxData['text']
 
     
     return vxData
@@ -158,15 +163,15 @@ def embed_reddit(post_link,isDiscordBot=False):
     statsLine = build_stats_line(videoInfo)
     if videoInfo["post_type"] == "unknown":
         return message("Unknown post type")
-    elif videoInfo["post_type"] == "text":
+    elif videoInfo["post_type"] == "text" or videoInfo["post_type"] == "link":
         return render_template("text.html", vxData=videoInfo,appname=config.currentConfig["MAIN"]["appName"], statsLine=statsLine, domainName=config.currentConfig["MAIN"]["domainName"])
     elif videoInfo["post_type"] == "image":
         return render_template("image.html", vxData=videoInfo,appname=config.currentConfig["MAIN"]["appName"], statsLine=statsLine, domainName=config.currentConfig["MAIN"]["domainName"])
     elif videoInfo["post_type"] == "gallery":
         imageCount = str(len(videoInfo["images"]))
         return render_template("image.html", vxData=videoInfo,appname=config.currentConfig["MAIN"]["appName"]+" - Image 1 of "+imageCount, statsLine=statsLine, domainName=config.currentConfig["MAIN"]["domainName"])
-    elif videoInfo["post_type"] == "link":
-        return redirect(videoInfo["link_url"]) # this might need to be improved later
+    #elif videoInfo["post_type"] == "link":
+    #    return redirect(videoInfo["link_url"]) # this might need to be improved later
     elif videoInfo["post_type"] == "video":
         if videoInfo["audio_url"] is None:
             convertedUrl = videoInfo["video_url"]
