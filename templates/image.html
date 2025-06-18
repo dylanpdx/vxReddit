@@ -6,7 +6,10 @@
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="{{ vxData["title"] }}" />
 <meta name="twitter:creator" content="/u/{{ vxData["author"] }} on {{ vxData["subreddit"] }}" />
-<meta name="twitter:image" content="{{ vxData["images"][0] }}" />
+
+{% for img in vxData["images"] %}
+    <meta name="twitter:image" content="{{ img }}" />
+{% endfor %}
 
 <meta property="og:description" content="{{ vxData["text"] }}" />
 

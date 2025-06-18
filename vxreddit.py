@@ -172,7 +172,7 @@ def embed_reddit(post_link,isDiscordBot=False):
         return render_template("image.html", vxData=videoInfo,appname=config.currentConfig["MAIN"]["appName"], statsLine=statsLine, domainName=config.currentConfig["MAIN"]["domainName"])
     elif videoInfo["post_type"] == "gallery":
         imageCount = str(len(videoInfo["images"]))
-        return render_template("image.html", vxData=videoInfo,appname=config.currentConfig["MAIN"]["appName"]+" - Image 1 of "+imageCount, statsLine=statsLine, domainName=config.currentConfig["MAIN"]["domainName"])
+        return render_template("image.html", vxData=videoInfo,appname=config.currentConfig["MAIN"]["appName"]+" - Gallery with "+imageCount+" image(s)", statsLine=statsLine, domainName=config.currentConfig["MAIN"]["domainName"])
     #elif videoInfo["post_type"] == "link":
     #    return redirect(videoInfo["link_url"]) # this might need to be improved later
     elif videoInfo["post_type"] == "video":
