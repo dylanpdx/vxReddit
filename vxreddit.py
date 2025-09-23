@@ -47,6 +47,12 @@ def getVideoFromPostURL(url):
         return None
     resp=response.json()
     post_info = resp[0]["data"]["children"][0]["data"]
+    post_responses = resp[1]["data"]["children"]
+    is_reply = '/comment/' in url and len(post_responses) == 1 and 'body' in post_responses[0]['data'] and 'url' not in post_responses[0]['data']
+    if is_reply:
+        newTitle = "RE: "+post_info['title']
+        post_info = post_responses[0]['data']
+        post_info['title'] = newTitle
 
     # determine post type (video, image, text, gif, link, image gallery)
     post_type = "unknown"
@@ -60,6 +66,8 @@ def getVideoFromPostURL(url):
         post_type = "link"
     elif "selftext" in post_info and post_info["selftext"] != "":
         post_type = "text"
+    elif "body" in post_info and post_info["body"] != "":
+        post_type = "text"
 
     if not post_info:
         return None
@@ -70,12 +78,11 @@ def getVideoFromPostURL(url):
         "author": post_info["author"],
         "subreddit": post_info["subreddit_name_prefixed"],
         "permalink": post_info["permalink"],
-        "url": post_info["url"],
         "upvotes": post_info["ups"],
-        "comments": post_info["num_comments"],
+        "comments": 'num_comments' in post_info and post_info["num_comments"] or 0,
         "awards": post_info["total_awards_received"],
         "created": post_info["created_utc"],
-        "permalink": "https://www.reddit.com"+post_info["permalink"]
+        "url": "https://www.reddit.com"+post_info["permalink"]
     }
 
     if (post_type == "video"):
@@ -116,9 +123,14 @@ def getVideoFromPostURL(url):
         # get thumbnail
         #vxData["thumbnail_url"] = post_info["thumbnail"]
     else:
-        vxData["text"] = post_info["selftext"]
+        body = ''
+        if 'selftext' in post_info:
+            body = post_info["selftext"]
+        elif 'body' in post_info:
+            body = post_info['body']
+        vxData["text"] = body
         # get thumbnail
-        vxData["thumbnail_url"] = post_info["thumbnail"]
+        vxData["thumbnail_url"] = 'thumbnail' in post_info and post_info["thumbnail"] or ''
         if vxData["text"] == "" and vxData["title"] != "":
             vxData["text"] = post_info["title"]
         if vxData["post_type"] == "link" and vxData["url"] != "":

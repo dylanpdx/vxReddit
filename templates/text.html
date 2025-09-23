@@ -9,7 +9,7 @@
 
 <meta property="og:description" content="{{ vxData["text"] }}" />
 
-<link rel="alternate" href="https://{{ domainName }}/owoembed?text=/u/{{ vxData["author"] }} on {{ vxData["subreddit"] }} - {{ statsLine }}&url={{ vxData["permalink"] }}&provider_name={{ appname }}" type="application/json+oembed" title="{{ vxData["title"] }}">
+<link rel="alternate" href="https://{{ domainName }}/owoembed?text=/u/{{ vxData["author"] }} on {{ vxData["subreddit"] }} - {{ statsLine }}&url={{ vxData["url"] }}&provider_name={{ appname }}" type="application/json+oembed" title="{{ vxData["title"] }}">
 
-<meta http-equiv="refresh" content="0; url = {{ vxData["permalink"] }}" /> {% endblock %} {% block body %} Please wait...
-<a href="{{ vxData["permalink"] }}">Or click here.</a> {% endblock %}
+<meta http-equiv="refresh" content="0; url = {{ vxData["url"] }}" /> {% endblock %} {% block body %} Please wait...
+<a href="{{ vxData["url"] }}">Or click here.</a> {% endblock %}
