@@ -48,7 +48,7 @@ def getVideoFromPostURL(url):
     resp=response.json()
     post_info = resp[0]["data"]["children"][0]["data"]
     post_responses = resp[1]["data"]["children"]
-    is_reply = '/comment/' in url and len(post_responses) == 1 and 'body' in post_responses[0]['data'] and 'url' not in post_responses[0]['data']
+    is_reply = len(post_responses) == 1 and 'body' in post_responses[0]['data'] and 'url' not in post_responses[0]['data'] and f"/{post_responses[0]['data']['id']}" in url
     if is_reply:
         newTitle = "RE: "+post_info['title']
         post_info = post_responses[0]['data']
