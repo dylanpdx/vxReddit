@@ -111,8 +111,8 @@ def getVideoFromPostURL(url):
         vxData["thumbnail_url"] = post_info["thumbnail"]
     elif (post_type == "gallery"):
         vxData["images"] = []
-        for image in post_info["media_metadata"]:
-            postUrl = post_info["media_metadata"][image]["s"]["u"]
+        for imageo in post_info["gallery_data"]["items"]:
+            postUrl = post_info["media_metadata"][imageo["media_id"]]["s"]["u"]
             if postUrl.startswith("https://preview.redd.it"):
                 postUrl = postUrl.replace("https://preview.redd.it","https://i.redd.it")
             vxData["images"].append(postUrl)
