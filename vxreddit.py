@@ -86,19 +86,67 @@ def getVideoFromPostURL(url):
     }
 
     if (post_type == "video"):
-        vxData["video_url"] = post_info["media"]["reddit_video"]["fallback_url"]
+        hls_url = post_info["media"]["reddit_video"]["hls_url"]
+        base_url = "/".join(hls_url.split("/")[:-1]) + "/"
+
+        def get_final_media_url(m3u8_url):
+            response = requests.get(m3u8_url, headers=r_headers)
+            if response.status_code != 200:
+                return None
+            content = response.text
+            
+            # non comments are usually filenames
+            lines = content.split('\n')
+            for line in reversed(lines):
+                if line.strip() and not line.startswith('#'):
+                    if line.strip().endswith('.m3u8'):
+                        return None
+                        #return get_final_media_url(base_url + line.strip()) # we need to go deeper
+                    return base_url + line.strip()
+            return None
+
+        # get playlist
+        playlist_response = requests.get(hls_url, headers=r_headers)
+        if playlist_response.status_code != 200:
+            return None
+        playlist_content = playlist_response.text
+
+        video_url = None
+        max_bandwidth = 0
+        selected_audio_group = None
+        video_m3u8_url = None
+        
+        # find highest bandwidth video
+        lines = playlist_content.split('\n')
+        for i, line in enumerate(lines):
+            if '#EXT-X-STREAM-INF:' in line:
+                bandwidth = int(line.split('BANDWIDTH=')[1].split(',')[0])
+                if bandwidth > max_bandwidth:
+                    max_bandwidth = bandwidth
+                    # get audio group associated with this stream
+                    if 'AUDIO=' in line:
+                        selected_audio_group = line.split('AUDIO="')[1].split('"')[0]
+                    video_stream = next(filter(lambda x: x.strip() and not x.startswith('#'), 
+                                            lines[i+1:]))
+                    video_m3u8_url = base_url + video_stream.strip()
+        
+        # final video URL
+        if video_m3u8_url:
+            video_url = get_final_media_url(video_m3u8_url)
+        
+        # find audio and get its final URL
+        audio_url = None
+        if selected_audio_group:
+            for line in lines:
+                if '#EXT-X-MEDIA:' in line and 'TYPE=AUDIO' in line and f'GROUP-ID="{selected_audio_group}"' in line:
+                    uri = line.split('URI="')[1].split('"')[0]
+                    audio_m3u8_url = base_url + uri
+                    audio_url = get_final_media_url(audio_m3u8_url)
+                    break
+
+        vxData["video_url"] = video_url
         vxData["video_width"] = post_info["media"]["reddit_video"]["width"]
         vxData["video_height"] = post_info["media"]["reddit_video"]["height"]
-        # get audio url
-        audio_url = None
-        if "has_audio" in post_info["media"]["reddit_video"] and not post_info["media"]["reddit_video"]["has_audio"]:
-            audio_url = None
-        else:
-            for url in ['DASH_AUDIO_128.mp4','DASH_audio.mp4']:
-                testUrl = post_info["media"]["reddit_video"]["fallback_url"].split("DASH_")[0]+url
-                if requests.head(testUrl).status_code == 200:
-                    audio_url = testUrl
-                    break
         vxData["audio_url"] = audio_url
         # get thumbnail
         if 'preview' in post_info:
