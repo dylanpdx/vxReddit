@@ -2,6 +2,7 @@ import base64
 from urllib.parse import quote
 
 def fixUrlForDiscord(url):
+    return url # temporarily disable workaround
     # convert url to base64
     url = base64.b64encode(url.encode()).decode()
     # url encode

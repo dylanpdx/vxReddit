@@ -10,6 +10,7 @@ app = Flask(__name__)
 CORS(app)
 import os
 from discordWorkaround import fixUrlForDiscord
+import praw
 
 embed_user_agents = [
     "facebookexternalhit/1.1",
@@ -26,11 +27,7 @@ embed_user_agents = [
     "Mozilla/5.0 (compatible; January/1.0; +https://gitlab.insrt.uk/revolt/january)",
     "test"]
 
-
 r_headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0"}
-
-if os.environ.get('REDDIT_COOKIE') is not None:
-    r_headers['cookie'] = os.environ.get('REDDIT_COOKIE')
 
 def message(text):
     return render_template(
@@ -39,11 +36,22 @@ def message(text):
         appname=config.currentConfig["MAIN"]["appName"]
     )
 
-def getVideoFromPostURL(url):
+def getVideoFromPostURL(url,cookie=None):
+    origUrl = url
     url = url+".json"
     
-    response = requests.get(url,headers=r_headers)
+
+    cHeaders = r_headers
+    if cookie is not None:
+        cHeaders['cookie'] = cookie
+    else:
+        cookieGetResponse = requests.get(origUrl.replace("www.reddit.com","old.reddit.com"),headers=cHeaders)
+        if 'Set-Cookie' in cookieGetResponse.headers:
+            cHeaders['cookie'] = cookieGetResponse.headers['Set-Cookie']
+
+    response = requests.get(url,headers=cHeaders)
     if response.status_code != 200:
+        print("Got status: "+str(response.status_code))
         return None
     resp=response.json()
     post_info = resp[0]["data"]["children"][0]["data"]
@@ -70,6 +78,7 @@ def getVideoFromPostURL(url):
         post_type = "text"
 
     if not post_info:
+        print("No post info found")
         return None
 
     vxData = {
@@ -108,6 +117,7 @@ def getVideoFromPostURL(url):
         # get playlist
         playlist_response = requests.get(hls_url, headers=r_headers)
         if playlist_response.status_code != 200:
+            print("Failed to get playlist:", hls_url)
             return None
         playlist_content = playlist_response.text
 
@@ -185,8 +195,162 @@ def getVideoFromPostURL(url):
             url=vxData["url"]
             vxData["text"] = f"【🌐 {url} 】\n\n"+vxData['text']
 
-    
     return vxData
+
+def getVideoFromPostURLPraw(url):
+    if config.currentConfig["MAIN"]["praw_client_id"] == "" or config.currentConfig["MAIN"]["praw_client_secret"] == "" or config.currentConfig["MAIN"]["praw_user_agent"] == "":
+        return None
+    reddit = praw.Reddit(client_id=config.currentConfig["MAIN"]["praw_client_id"],
+                    client_secret=config.currentConfig["MAIN"]["praw_client_secret"],
+                    user_agent=config.currentConfig["MAIN"]["praw_user_agent"])
+
+    post_info = None
+    if "/comment/" in url:
+        post_info=reddit.comment(url=url)
+    else:
+        post_info = reddit.submission(url=url)
+    
+    post_type = "unknown"
+    if hasattr(post_info,'media_metadata'):
+        post_type = "gallery"
+    elif hasattr(post_info,'url') and post_info.url.endswith((".jpg",".png",".gif",".jpeg")):
+        post_type = "image"
+    elif (hasattr(post_info,'is_video') and post_info.is_video) or (hasattr(post_info,'post_hint') and post_info.post_hint == "hosted:video"):
+        post_type = "video"
+    elif hasattr(post_info,'url_overridden_by_dest'):
+        post_type = "link"
+    elif hasattr(post_info,'selftext') and post_info.selftext != "":
+        post_type = "text"
+    elif hasattr(post_info,'body') and post_info.body != "":
+        post_type = "text"
+
+    if not post_info:
+        print("No post info found")
+        return None
+
+    title="N/A"
+    if hasattr(post_info,'title'):
+        title=post_info.title
+    elif hasattr(post_info,'submission'):
+        title="RE: "+post_info.submission.title
+
+    vxData = {
+        "post_type": post_type,
+        "title": title,
+        "author": post_info.author.name,
+        "subreddit": post_info.subreddit_name_prefixed,
+        "permalink": post_info.permalink,
+        "upvotes": post_info.ups,
+        "comments": hasattr(post_info,'num_comments') and post_info.num_comments or 0,
+        "awards": post_info.total_awards_received,
+        "created": post_info.created_utc,
+        "url": "https://www.reddit.com"+post_info.permalink
+    }
+
+    # TODO: this code is mostly duplicated from getVideoFromPostURL, this needs to be cleaned up eventually
+    if (post_type == "video"):
+        hls_url = post_info.media["reddit_video"]["hls_url"]
+        base_url = "/".join(hls_url.split("/")[:-1]) + "/"
+
+        def get_final_media_url(m3u8_url):
+            response = requests.get(m3u8_url, headers=r_headers)
+            if response.status_code != 200:
+                return None
+            content = response.text
+            
+            # non comments are usually filenames
+            lines = content.split('\n')
+            for line in reversed(lines):
+                if line.strip() and not line.startswith('#'):
+                    if line.strip().endswith('.m3u8'):
+                        return None
+                        #return get_final_media_url(base_url + line.strip()) # we need to go deeper
+                    return base_url + line.strip()
+            return None
+
+        # get playlist
+        playlist_response = requests.get(hls_url, headers=r_headers)
+        if playlist_response.status_code != 200:
+            print("Failed to get playlist:", hls_url)
+            return None
+        playlist_content = playlist_response.text
+
+        video_url = None
+        max_bandwidth = 0
+        selected_audio_group = None
+        video_m3u8_url = None
+        
+        # find highest bandwidth video
+        lines = playlist_content.split('\n')
+        for i, line in enumerate(lines):
+            if '#EXT-X-STREAM-INF:' in line:
+                bandwidth = int(line.split('BANDWIDTH=')[1].split(',')[0])
+                if bandwidth > max_bandwidth:
+                    max_bandwidth = bandwidth
+                    # get audio group associated with this stream
+                    if 'AUDIO=' in line:
+                        selected_audio_group = line.split('AUDIO="')[1].split('"')[0]
+                    video_stream = next(filter(lambda x: x.strip() and not x.startswith('#'), 
+                                            lines[i+1:]))
+                    video_m3u8_url = base_url + video_stream.strip()
+        
+        # final video URL
+        if video_m3u8_url:
+            video_url = get_final_media_url(video_m3u8_url)
+        
+        # find audio and get its final URL
+        audio_url = None
+        if selected_audio_group:
+            for line in lines:
+                if '#EXT-X-MEDIA:' in line and 'TYPE=AUDIO' in line and f'GROUP-ID="{selected_audio_group}"' in line:
+                    uri = line.split('URI="')[1].split('"')[0]
+                    audio_m3u8_url = base_url + uri
+                    audio_url = get_final_media_url(audio_m3u8_url)
+                    break
+
+        vxData["video_url"] = video_url
+        vxData["video_width"] = post_info.media["reddit_video"]["width"]
+        vxData["video_height"] = post_info.media["reddit_video"]["height"]
+        vxData["audio_url"] = audio_url
+        # get thumbnail
+        if hasattr(post_info,'preview'):
+            vxData["thumbnail_url"] = post_info.preview["images"][0]["source"]["url"].replace("&amp;","&")
+        else:
+            vxData["thumbnail_url"] = post_info.thumbnail
+    elif (post_type == "image"):
+        vxData["images"] = [post_info.url]
+        # get thumbnail
+        vxData["thumbnail_url"] = post_info.thumbnail
+    elif (post_type == "gallery"):
+        vxData["images"] = []
+        for imageo in post_info.gallery_data["items"]:
+            postUrl = post_info.media_metadata[imageo["media_id"]]["s"]["u"]
+            if postUrl.startswith("https://preview.redd.it"):
+                postUrl = postUrl.replace("https://preview.redd.it","https://i.redd.it")
+            vxData["images"].append(postUrl)
+        # get thumbnail
+        vxData["thumbnail_url"] = post_info.thumbnail
+    #elif (post_type == "link"):
+        #vxData["link_url"] = #post_info["url_overridden_by_dest"]
+        # get thumbnail
+        #vxData["thumbnail_url"] = post_info.thumbnail
+    else:
+        body = ''
+        if hasattr(post_info,'selftext'):
+            body = post_info.selftext
+        elif hasattr(post_info,'body'):
+            body = post_info.body
+        vxData["text"] = body
+        # get thumbnail
+        vxData["thumbnail_url"] = hasattr(post_info,'thumbnail') and post_info.thumbnail or ''
+        if vxData["text"] == "" and vxData["title"] != "":
+            vxData["text"] = post_info.title
+        if vxData["post_type"] == "link" and vxData["url"] != "":
+            url=vxData["url"]
+            vxData["text"] = f"【🌐 {url} 】\n\n"+vxData['text']
+
+    return vxData
+
 
 def build_stats_line(post_info):
     upvotes = post_info["upvotes"]
@@ -220,9 +384,16 @@ def get_video():
         return redirect(f"{renderer}?video_url={video_url}&audio_url={audio_url}",code=307)
 
 def embed_reddit(post_link,isDiscordBot=False):
-    videoInfo = getVideoFromPostURL(post_link)
+    videoInfo = getVideoFromPostURLPraw(post_link)
+    if videoInfo is None:
+        videoInfo = getVideoFromPostURL(post_link)
+        if videoInfo is None:
+            if os.environ.get('REDDIT_COOKIE') is not None:
+                videoInfo = getVideoFromPostURL(post_link,os.environ.get('REDDIT_COOKIE'))
     if videoInfo is None:
         return message("Failed to get data from Reddit")
+    
+    
     statsLine = build_stats_line(videoInfo)
     if videoInfo["post_type"] == "unknown":
         return message("Unknown post type")

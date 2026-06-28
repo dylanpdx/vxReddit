@@ -11,6 +11,9 @@ currentConfig["MAIN"]={
     "repoURL":"https://github.com/dylanpdx/vxReddit",
     "domainName":"vxreddit.com",
     "videoConversion":"local",
+    "praw_client_id":"",
+    "praw_client_secret":"",
+    "praw_user_agent":""
 }
 
 if 'RUNNING_SERVERLESS' in os.environ and os.environ['RUNNING_SERVERLESS'] == '1':
@@ -20,6 +23,9 @@ if 'RUNNING_SERVERLESS' in os.environ and os.environ['RUNNING_SERVERLESS'] == '1
         "repoURL":os.environ['REPO_URL'],
         "domainName":os.environ['DOMAINNAME'],
         "videoConversion":os.environ['VIDEOCONVERSION'],
+        "praw_client_id":os.getenv('PRAW_CLIENT_ID',""),
+        "praw_client_secret":os.getenv('PRAW_CLIENT_SECRET',""),
+        "praw_user_agent":os.getenv('PRAW_USER_AGENT',"")
     }
 else:
     if os.path.exists("vxReddit.conf"):
