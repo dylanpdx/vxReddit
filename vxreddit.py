@@ -34,7 +34,8 @@ test
 """
 
 r_headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+    "Cookie": os.environ.get("REDDIT_COOKIE"),
 }
 
 
@@ -325,7 +326,7 @@ def get_embed_info(post_link):
     if embed_info:
         return embed_info
 
-    embed_info = get_embed_info_from_url(post_link, os.environ.get("REDDIT_COOKIE"))
+    embed_info = get_embed_info_from_url(post_link)
     if embed_info:
         return embed_info
 
