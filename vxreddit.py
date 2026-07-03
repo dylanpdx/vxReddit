@@ -109,9 +109,13 @@ def is_reply(url):
 def embed_info_from_post(post_info):
     match post_info.get("post_hint"):
         case None:
-            if post_info.get("gallery_data"):
+            if post_info.get("removed_by_category"):
+                post_type = "text"
+            elif post_info.get("gallery_data"):
                 post_type = "gallery"
-            elif post_info.get("url", "/").startswith(("/", "https://www.reddit.com/")):
+            elif not post_info.get("url"):
+                post_type = "text"
+            elif post_info["url"].startswith(("/", "https://www.reddit.com/")):
                 post_type = "text"
             else:
                 post_type = "link"
@@ -241,6 +245,7 @@ def get_embed_info_from_url_praw(url):
                 "num_comments": post.num_comments,
                 "url": post.url,
                 "thumbnail": post.thumbnail,
+                "removed_by_category": post.removed_by_category,
             }
     except prawcore.PrawcoreException:
         return None
