@@ -41,6 +41,7 @@ declare -A tests=(
 
     [other-noauthor]=https://www.reddit.com/r/pics/comments/i3izcv/first_day_of_school_in_a_georgia_town_one_of_the/
     [other-deleted]=https://www.reddit.com/user/Tight-Scientist-1031/comments/1umktwo/deleted_post/
+    [other-removed]=https://www.reddit.com/r/whatisit/comments/1uhk9xo/what_on_earth_is_this/
     [other-user]=https://www.reddit.com/user/Tight-Scientist-1031/comments/1umks6t/title/
     [other-u]=https://www.reddit.com/u/Tight-Scientist-1031/comments/1umks6t/title/
     [other-r]=https://www.reddit.com/r/Tight-Scientist-1031/comments/1umks6t/title/
@@ -85,6 +86,9 @@ while IFS= read -r name; do
         continue
     elif [[ $out == *'content="Unknown post type"'* ]]; then
         echo -e "${red}failed${reset} (unknown)"
+        continue
+    elif [[ $out == *'content="Failed to get data from Reddit"'* ]]; then
+        echo -e "${red}failed${reset} (data)"
         continue
     fi
 
