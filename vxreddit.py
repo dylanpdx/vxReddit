@@ -69,6 +69,7 @@ def get_image_urls(post_info):
             case "Image":
                 url = original["u"]
                 url = url.replace("https://preview.redd.it/", "https://i.redd.it/")
+                url = url.split("?")[0]
                 images.append(url)
             case "AnimatedImage":
                 url = original["gif"]
