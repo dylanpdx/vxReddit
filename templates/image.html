@@ -1,19 +1,12 @@
 {% extends 'base.html' %} {% block head %}
-<meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
-<meta content="{{ color }}" name="theme-color" />
-<meta property="og:site_name" content="{{ appname }}">
 
+<meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="{{ vxData["title"] }}" />
-<meta name="twitter:creator" content="/u/{{ vxData["author"] }} on {{ vxData["subreddit"] }}" />
 
-{% for img in vxData["images"] %}
-    <meta name="twitter:image" content="{{ img }}" />
+{% for img in embed_info['images'] %}
+<meta property="og:image" content="{{ img }}" />
 {% endfor %}
 
-<meta property="og:description" content="{{ vxData["text"] }}" />
+<meta name="twitter:image" content="{{ embed_info['images'][0] }}" />
 
-<link rel="alternate" href="https://{{ domainName }}/owoembed?text=/u/{{ vxData["author"] }} on {{ vxData["subreddit"] }} - {{ statsLine }}&url={{ vxData["url"] }}&provider_name={{ appname }}" type="application/json+oembed" title="{{ vxData["title"] }}">
-
-<meta http-equiv="refresh" content="0; url = {{ vxData["url"] }}" /> {% endblock %} {% block body %} Please wait...
-<a href="{{ vxData["url"] }}">Or click here.</a> {% endblock %}
+{% endblock %}

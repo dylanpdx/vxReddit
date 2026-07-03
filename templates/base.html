@@ -1,12 +1,35 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
 
-<head>
-    {% block head %}{% endblock %}
-</head>
+        <meta property="og:site_name" content="{{ stats_line }}" />
+        <meta content="{{ embed_color }}" name="theme-color" />
 
-<body>
-    {% block body %}{% endblock %}
-</body>
+        <meta property="og:url" content="{{ redirect_url }}" />
 
+        {% if embed_info['text'] and embed_info['title'] != embed_info['text']
+        %}
+        <meta property="og:title" content="{{ embed_info['title'] }}" />
+        <meta property="og:description" content="{{ embed_info['text'] }}" />
+        {% elif embed_info['post_type'] in ('text', 'link') %}
+        <meta property="og:title" content="vxReddit" />
+        <meta property="og:description" content="{{ embed_info['title'] }}" />
+        {% else %}
+        <meta property="og:title" content="{{ embed_info['title'] }}" />
+        {% endif %}
+
+        <link
+            rel="alternate"
+            href="https://{{ domain_name }}/oembed?text={{ stats_line }}&url={{ redirect_url }}"
+            type="application/json+oembed"
+            title="{{ embed_info['title'] }}"
+        />
+
+        {% block head %}{% endblock %}
+    </head>
+
+    <body>
+        {% include "redirect.html" %}
+    </body>
 </html>
