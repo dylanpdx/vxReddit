@@ -35,6 +35,7 @@ declare -A tests=(
 
     [video]=https://www.reddit.com/r/nextfuckinglevel/comments/1ukshul/2_people_have_climbed_the_empire_state_building/
     [video-caption]=https://www.reddit.com/r/RemarkableTablet/comments/1u9yfdg/received_beta_328_and_its_awesome_so_far/
+    [video-noaudio]=https://www.reddit.com/r/IdiotsInCars/comments/1uk33rt/oc_a_bad_driver_never_misses_a_chance_to_be_polite/
 
     [reply]=https://www.reddit.com/r/RemarkableTablet/comments/1ulad9y/comment/ov38mit/
     [reply-media]=https://www.reddit.com/r/RemarkableTablet/comments/1ulad9y/comment/ov8ogh1/
