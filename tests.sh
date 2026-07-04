@@ -36,6 +36,10 @@ declare -A tests=(
     [video]=https://www.reddit.com/r/nextfuckinglevel/comments/1ukshul/2_people_have_climbed_the_empire_state_building/
     [video-caption]=https://www.reddit.com/r/RemarkableTablet/comments/1u9yfdg/received_beta_328_and_its_awesome_so_far/
     [video-noaudio]=https://www.reddit.com/r/IdiotsInCars/comments/1uk33rt/oc_a_bad_driver_never_misses_a_chance_to_be_polite/
+    [video-gif]=https://www.reddit.com/r/aww/comments/90bu6w/heat_index_was_110_degrees_so_we_offered_him_a/
+    [video-gif-video]=https://www.reddit.com/r/wallstreetbets/comments/l8rf4k/times_square_right_now/
+    [video-unknown-audio]=https://www.reddit.com/r/PublicFreakout/comments/gzvmsr/everybodys_trying_to_shame_us/
+    [video-unknown-noaudio]=https://www.reddit.com/r/aww/comments/exng3g/bunnies_flop_over_when_they_feel_completely_safe/
 
     [reply]=https://www.reddit.com/r/RemarkableTablet/comments/1ulad9y/comment/ov38mit/
     [reply-media]=https://www.reddit.com/r/RemarkableTablet/comments/1ulad9y/comment/ov8ogh1/
