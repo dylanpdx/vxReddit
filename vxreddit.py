@@ -6,6 +6,7 @@ import urllib.parse
 
 import m3u8
 import praw
+import prawcore
 import requests
 from flask import Flask, abort, redirect, render_template, request, send_file
 from flask_cors import CORS
@@ -197,10 +198,18 @@ def get_embed_info_from_url_praw(post_id, comment_id):
 
     if comment_id:
         post = reddit.comment(id=comment_id)
+    else:
+        post = reddit.submission(id=post_id)
+
+    try:
+        post._fetch()
+    except prawcore.Forbidden:
+        return None
+
+    if comment_id:
         post_info["title"] = "RE: " + post.submission.title
         post_info["body"] = post.body
     else:
-        post = reddit.submission(id=post_id)
         post_info |= {
             "title": post.title,
             "selftext": post.selftext,
