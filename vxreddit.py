@@ -399,14 +399,10 @@ def clean_path(path):
 
 
 def validate_path(path):
-    subreddit_re = r"[A-Za-z0-9][A-Za-z0-9_]{2,20}"
-    user_re = r"[A-Za-z0-9_-]{3,20}"
     id_re = r"(?-i:[0-9a-z]+)"
     share_id_re = r"(?-i:[0-9A-Za-z]{10})"
 
-    subreddit_or_user = (
-        rf"(?:r/(?:{subreddit_re}|(?:u_)?{user_re})|u(?:ser)?/{user_re})"
-    )
+    subreddit_or_user = r"(?:r|u|user)/[^/]+"
 
     # /comments/[p]
     # /comments/[p]/[]
