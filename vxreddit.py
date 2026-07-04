@@ -298,7 +298,7 @@ def embed_reddit(post_id, comment_id):
     except Exception as e:
         return render_template(
             "message.html",
-            message=f"Internal server error: {e}",
+            message=f"Internal server error: {type(e).__name__}: {e}",
             **args,
         )
 
