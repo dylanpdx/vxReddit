@@ -51,6 +51,7 @@ declare -A tests=(
     [other-u]=https://www.reddit.com/u/Tight-Scientist-1031/comments/1umks6t/title/
     [other-r]=https://www.reddit.com/r/Tight-Scientist-1031/comments/1umks6t/title/
     [other-r-u]=https://www.reddit.com/r/u_Tight-Scientist-1031/comments/1umks6t/title/
+    [other-invalid-subreddit]=https://www.reddit.com/r/reddit.com/comments/87/the_downing_street_memo/
     [other-alwaysshowmedia]=https://www.reddit.com/r/news/comments/1ulikh0/vatican_excommunicates_all_members_of/
 
     [share-mobile]=https://www.reddit.com/r/RemarkableTablet/s/PfFj7TdhlT
