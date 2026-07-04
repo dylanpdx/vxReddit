@@ -1,0 +1,10 @@
+Redirecting...
+<a href="{{ redirect_url }}">or click here.</a>
+
+<script>
+    location.replace({{ redirect_url | tojson }});
+</script>
+
+<noscript>
+    <meta http-equiv="refresh" content="0;url={{ redirect_url }}" />
+</noscript>

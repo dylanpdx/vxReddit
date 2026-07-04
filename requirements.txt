@@ -10,6 +10,7 @@ Flask-Cors==4.0.0
 idna==3.6
 itsdangerous==2.1.2
 Jinja2==3.1.6
+m3u8==6.0.0
 MarkupSafe==2.1.4
 mutagen==1.47.0
 praw==8.0.2
