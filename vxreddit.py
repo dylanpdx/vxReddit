@@ -47,12 +47,21 @@ def get_video_urls(post_info):
     video = max(playlist.playlists, key=lambda p: p.stream_info.bandwidth or 0)
 
     audio = next(
-        m
-        for m in playlist.media
-        if m.type == "AUDIO" and m.group_id == video.stream_info.audio
+        (
+            m
+            for m in playlist.media
+            if m.type == "AUDIO" and m.group_id == video.stream_info.audio
+        ),
+        None,
     )
 
-    return base_url + video.uri, base_url + audio.uri
+    video_url = base_url + video.uri
+    if audio:
+        audio_url = base_url + audio.uri
+    else:
+        audio_url = None
+
+    return video_url, audio_url
 
 
 def get_image_urls(post_info):
