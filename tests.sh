@@ -45,6 +45,8 @@ declare -A tests=(
     [other-user]=https://www.reddit.com/user/Tight-Scientist-1031/comments/1umks6t/title/
     [other-u]=https://www.reddit.com/u/Tight-Scientist-1031/comments/1umks6t/title/
     [other-r]=https://www.reddit.com/r/Tight-Scientist-1031/comments/1umks6t/title/
+    [other-r-u]=https://www.reddit.com/r/u_Tight-Scientist-1031/comments/1umks6t/title/
+    [other-alwaysshowmedia]=https://www.reddit.com/r/news/comments/1ulikh0/vatican_excommunicates_all_members_of/
 
     [share-mobile]=https://www.reddit.com/r/RemarkableTablet/s/nZLEY6RQSC
     [share-short]=https://redd.it/1u6ep5a/
@@ -84,11 +86,14 @@ while IFS= read -r name; do
     if [[ $status != 0 ]]; then
         echo -e "${red}failed${reset} ($status)"
         continue
-    elif [[ $out == *'content="Unknown post type"'* ]]; then
+    elif [[ $out == *'content="Unknown post type'* ]]; then
         echo -e "${red}failed${reset} (unknown)"
         continue
-    elif [[ $out == *'content="Failed to get data from Reddit"'* ]]; then
+    elif [[ $out == *'content="Failed to get data from Reddit'* ]]; then
         echo -e "${red}failed${reset} (data)"
+        continue
+    elif [[ $out == *'content="Internal server error'* ]]; then
+        echo -e "${red}failed${reset} (server)"
         continue
     fi
 

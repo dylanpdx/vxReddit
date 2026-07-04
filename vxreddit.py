@@ -6,7 +6,6 @@ import urllib.parse
 
 import m3u8
 import praw
-import prawcore
 import requests
 from flask import Flask, abort, redirect, render_template, request, send_file
 from flask_cors import CORS
@@ -79,35 +78,6 @@ def get_image_urls(post_info):
     return images
 
 
-def is_reply(url):
-    # https://www.reddit.com/[[...]] -> [[...]]
-    parts = url.split("/")[3:]
-
-    if "comments" not in parts:
-        return None, None
-
-    # /comments/
-    # /r/[subreddit]/comments/
-    # /u/[user]/comments/
-    # /user/[user]/comments/
-    i = parts.index("comments")
-    if i not in (0, 2):
-        return None, None
-
-    post_id = parts[i + 1]
-    remaining = parts[i + 2 :]
-
-    # /comments/[post]
-    # /comments/[post]/[slug]
-    if len(remaining) < 2:
-        return False, post_id
-    # /comments/[post]/[slug]/[comment]
-    elif len(remaining) == 2:
-        return True, remaining[-1]
-    else:
-        return None, None
-
-
 def embed_info_from_post(post_info):
     match post_info.get("post_hint"):
         case None:
@@ -176,26 +146,18 @@ def embed_info_from_post(post_info):
     return embed_info
 
 
-def get_embed_info_from_url(url):
-    reply, _ = is_reply(url)
+def get_embed_info_from_url(post_id, comment_id):
+    json_url = id_to_url(post_id, comment_id) + ".json?raw_json=1"
+    r = requests.get(json_url, headers=r_headers)
 
-    if reply is None:
+    if r.status_code != 200:
         return None
 
-    try:
-        json_url = url + ".json?raw_json=1&always_show_media=1"
-        r = requests.get(json_url, headers=r_headers)
-
-        if r.status_code != 200:
-            return None
-
-        response = r.json()
-    except requests.RequestException:
-        return None
+    response = r.json()
 
     post_info = response[0]["data"]["children"][0]["data"]
 
-    if reply:
+    if comment_id:
         post_replies = response[1]["data"]["children"]
 
         new_title = "RE: " + post_info["title"]
@@ -208,7 +170,7 @@ def get_embed_info_from_url(url):
     return embed_info_from_post(post_info)
 
 
-def get_embed_info_from_url_praw(url):
+def get_embed_info_from_url_praw(post_id, comment_id):
     client_id = config.currentConfig["MAIN"]["praw_client_id"]
     client_secret = config.currentConfig["MAIN"]["praw_client_secret"]
     user_agent = config.currentConfig["MAIN"]["praw_user_agent"]
@@ -222,30 +184,22 @@ def get_embed_info_from_url_praw(url):
         user_agent=user_agent,
     )
 
-    reply, id = is_reply(url)
-
-    if reply is None:
-        return None
-
     post_info = {}
 
-    try:
-        if reply:
-            post = reddit.comment(id=id)
-            post_info["title"] = "RE: " + post.submission.title
-            post_info["body"] = post.body
-        else:
-            post = reddit.submission(id=id)
-            post_info |= {
-                "title": post.title,
-                "selftext": post.selftext,
-                "num_comments": post.num_comments,
-                "url": post.url,
-                "thumbnail": post.thumbnail,
-                "removed_by_category": post.removed_by_category,
-            }
-    except prawcore.PrawcoreException:
-        return None
+    if comment_id:
+        post = reddit.comment(id=comment_id)
+        post_info["title"] = "RE: " + post.submission.title
+        post_info["body"] = post.body
+    else:
+        post = reddit.submission(id=post_id)
+        post_info |= {
+            "title": post.title,
+            "selftext": post.selftext,
+            "num_comments": post.num_comments,
+            "url": post.url,
+            "thumbnail": post.thumbnail,
+            "removed_by_category": post.removed_by_category,
+        }
 
     author = post.author
     if not author:
@@ -316,27 +270,37 @@ def get_video():
         )
 
 
-def get_embed_info(post_link):
-    embed_info = get_embed_info_from_url_praw(post_link)
+def get_embed_info(post_id, comment_id):
+    embed_info = get_embed_info_from_url_praw(post_id, comment_id)
     if embed_info:
         return embed_info
 
-    embed_info = get_embed_info_from_url(post_link)
+    embed_info = get_embed_info_from_url(post_id, comment_id)
     if embed_info:
         return embed_info
 
     return None
 
 
-def embed_reddit(post_link):
-    embed_info = get_embed_info(post_link)
+def embed_reddit(post_id, comment_id):
+    if post_id is None:
+        abort(404)
 
     args = {
         "app_name": config.currentConfig["MAIN"]["appName"],
         "domain_name": config.currentConfig["MAIN"]["domainName"],
         "embed_color": config.currentConfig["MAIN"]["embedColor"],
-        "redirect_url": post_link,
+        "redirect_url": id_to_url(post_id, comment_id),
     }
+
+    try:
+        embed_info = get_embed_info(post_id, comment_id)
+    except Exception as e:
+        return render_template(
+            "message.html",
+            message=f"Internal server error: {e}",
+            **args,
+        )
 
     if not embed_info:
         return render_template(
@@ -395,25 +359,81 @@ def alternateJSON():
     }
 
 
-@app.route("/<path:sub_path>")
-def embedReddit(sub_path):
-    sub_path = sub_path.split("?")[0]
-    sub_path = re.sub(r"/{2,}", "/", sub_path)
-    sub_path = sub_path.rstrip("/")
+def id_to_url(post_id, comment_id):
+    post_link = f"https://www.reddit.com/comments/{post_id}"
+    if comment_id:
+        post_link += f"/_/{comment_id}"
 
-    post_link = "https://www.reddit.com/" + sub_path
+    return post_link
 
-    parts = sub_path.split("/")
-    # /r/[subreddit]/s/[post]
-    if len(parts) == 4 and parts[2] == "s":
-        r = requests.get(post_link, allow_redirects=False, headers=r_headers)
-        if r.headers.get("Location", "").startswith("https://"):
-            post_link = r.headers["Location"].split("?")[0].rstrip("/")
-    # /[post]
-    elif len(parts) == 1:
-        post_link = "https://www.reddit.com/comments/" + sub_path
 
-    return embed_reddit(post_link)
+def clean_path(path):
+    path = path.split("?")[0]
+    path = re.sub(r"/{2,}", "/", path)
+
+    path = path.rstrip("/")
+    if not path.startswith("/"):
+        path = "/" + path
+
+    return path
+
+
+def validate_path(path):
+    subreddit_re = r"[A-Za-z0-9][A-Za-z0-9_]{2,20}"
+    user_re = r"[A-Za-z0-9_-]{3,20}"
+    id_re = r"(?-i:[0-9a-z]+)"
+    share_id_re = r"(?-i:[0-9A-Za-z]{10})"
+
+    subreddit_or_user = (
+        rf"(?:r/(?:{subreddit_re}|(?:u_)?{user_re})|u(?:ser)?/{user_re})"
+    )
+
+    # /comments/[p]
+    # /comments/[p]/[]
+    # /comments/[p]/[]/[c]
+    # /r/[]/comments/[p]
+    # /r/[]/comments/[p]/[]
+    # /r/[]/comments/[p]/[]/[c]
+    # or with /u/, /user/, or /r/u_ instead of /r/
+    full = re.compile(
+        rf"^(?:/{subreddit_or_user})?/comments/({id_re})(?:/[^/]+(?:/({id_re}))?)?$",
+        re.IGNORECASE,
+    )
+
+    # /[p] (redd.it)
+    short = re.compile(rf"^/({id_re})$")
+
+    # /r/[]/s/[s]
+    share = re.compile(
+        rf"^/{subreddit_or_user}/s/{share_id_re}$",
+        re.IGNORECASE,
+    )
+
+    match = share.match(path)
+    if match:
+        r = requests.head(
+            f"https://www.reddit.com{path}", allow_redirects=True, headers=r_headers
+        )
+        path = clean_path(urllib.parse.urlparse(r.url).path)
+
+    match = full.match(path)
+    if match:
+        return match.group(1), match.group(2)
+
+    match = short.match(path)
+    if match:
+        return match.group(1), None
+
+    return None, None
+
+
+@app.route("/<path:path>")
+def embedReddit(path):
+    path = clean_path(path)
+
+    post_id, comment_id = validate_path(path)
+
+    return embed_reddit(post_id, comment_id)
 
 
 if __name__ == "__main__":
