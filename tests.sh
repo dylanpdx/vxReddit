@@ -53,15 +53,15 @@ declare -A tests=(
     [other-r-u]=https://www.reddit.com/r/u_Tight-Scientist-1031/comments/1umks6t/title/
     [other-alwaysshowmedia]=https://www.reddit.com/r/news/comments/1ulikh0/vatican_excommunicates_all_members_of/
 
-    [share-mobile]=https://www.reddit.com/r/RemarkableTablet/s/nZLEY6RQSC
-    [share-short]=https://redd.it/1u6ep5a/
-    [share-nosubreddit]=https://www.reddit.com/comments/1u6ep5a/
-    [share-nosubreddit-reply]=https://www.reddit.com/comments/1u6ep5a/comment/ort6uxv/
-    [share-nosubreddit-reply-slug]=https://www.reddit.com/comments/1u6ep5a/introducing_our_new_team_account_328_beta/ort6uxv/
-    [share-noslug]=https://www.reddit.com/r/RemarkableTablet/comments/1u6ep5a/
-    [share-reply-slug]=https://www.reddit.com/r/RemarkableTablet/comments/1u6ep5a/introducing_our_new_team_account_328_beta/ort6uxv/
-    [share-title-comment]=https://www.reddit.com/r/RemarkableTablet/comments/1u6ep5a/comment/
-    [share-title-commentid]=https://www.reddit.com/r/RemarkableTablet/comments/1u6ep5a/ort6uxv/
+    [share-mobile]=https://www.reddit.com/r/RemarkableTablet/s/PfFj7TdhlT
+    [share-short]=https://redd.it/1twzgb0/
+    [share-nosubreddit]=https://www.reddit.com/comments/1twzgb0/
+    [share-nosubreddit-reply]=https://www.reddit.com/comments/1twzgb0/comment/ops7719/
+    [share-nosubreddit-reply-slug]=https://www.reddit.com/comments/1twzgb0/a_few_words_on_the_pure/ops7719/
+    [share-noslug]=https://www.reddit.com/r/RemarkableTablet/comments/1twzgb0/
+    [share-reply-slug]=https://www.reddit.com/r/RemarkableTablet/comments/1twzgb0/a_few_words_on_the_pure/ops7719/
+    [share-title-comment]=https://www.reddit.com/r/RemarkableTablet/comments/1twzgb0/comment/
+    [share-title-commentid]=https://www.reddit.com/r/RemarkableTablet/comments/1twzgb0/ops7719/
 )
 
 red='\e[0;31m'
