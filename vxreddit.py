@@ -40,7 +40,12 @@ r_headers = {
 
 
 def get_video_urls(post_info):
-    hls_url = post_info["media"]["reddit_video"]["hls_url"]
+    reddit_video = post_info["media"]["reddit_video"]
+
+    if reddit_video["is_gif"] or not reddit_video.get("has_audio", True):
+        return reddit_video["fallback_url"], None
+
+    hls_url = reddit_video["hls_url"]
     base_url = hls_url[: hls_url.rfind("/") + 1]
 
     playlist = m3u8.load(hls_url)
@@ -56,13 +61,10 @@ def get_video_urls(post_info):
         None,
     )
 
-    video_url = base_url + video.uri
-    if audio:
-        audio_url = base_url + audio.uri
+    if audio is None:
+        return reddit_video["fallback_url"], None
     else:
-        audio_url = None
-
-    return video_url, audio_url
+        return base_url + video.uri, base_url + audio.uri
 
 
 def get_image_urls(post_info):
