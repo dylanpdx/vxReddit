@@ -6,7 +6,7 @@ provider:
   stage: dev
   environment:
     APP_NAME: vxReddit
-    EMBED_COLOR: \#EE1D52
+    EMBED_COLOR: \#FF4500
     REPO_URL: https://github.com/dylanpdx/vxReddit
     DOMAINNAME: vxreddit.com
     VIDEOCONVERSION: local
