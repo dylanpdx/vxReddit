@@ -176,12 +176,7 @@ def embed_info_from_post(post_info):
     return embed_info
 
 
-def get_embed_info_from_url(url, cookie=None):
-    cookie_headers = r_headers.copy()
-
-    if cookie:
-        cookie_headers["Cookie"] = cookie
-
+def get_embed_info_from_url(url):
     reply, _ = is_reply(url)
 
     if reply is None:
@@ -189,7 +184,7 @@ def get_embed_info_from_url(url, cookie=None):
 
     try:
         json_url = url + ".json?raw_json=1&always_show_media=1"
-        r = requests.get(json_url, headers=cookie_headers)
+        r = requests.get(json_url, headers=r_headers)
 
         if r.status_code != 200:
             return None
