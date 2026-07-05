@@ -4,6 +4,7 @@ certifi==2023.11.17
 charset-normalizer==3.3.2
 click==8.1.7
 colorama==0.4.6
+crawler-user-agents==1.59.0
 defusedxml==0.7.1
 Flask==2.3.3
 Flask-Cors==4.0.0

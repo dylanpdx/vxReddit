@@ -17,7 +17,7 @@ declare -A tests=(
     [text]=https://www.reddit.com/r/RemarkableTablet/comments/1twzgb0/a_few_words_on_the_pure/
     [text-media]=https://www.reddit.com/r/RemarkableTablet/comments/1u6ep5a/introducing_our_new_team_account_328_beta/
     [text-titleonly]=https://www.reddit.com/r/AskReddit/comments/1ujr8do/us_supreme_court_in_63_ruling_upholds_birthright/
-    [text-same]=https://www.reddit.com/user/Tight-Scientist-1031/comments/1umk3yl/the_title_and_body_text_is_the_same/
+    [text-same]=https://www.reddit.com/r/getrektlmao/comments/1uk3635/i/
 
     [link]=https://www.reddit.com/r/news/comments/1ujr690/supreme_court_upholds_birthright_citizenship_on/
     [link-nohint]=https://www.reddit.com/r/pics/comments/5sfexx/this_is_shelia_fredrick_a_flight_attendant_she/
@@ -26,12 +26,12 @@ declare -A tests=(
     [image]=https://www.reddit.com/r/RemarkableTablet/comments/1uhyao1/morning_vibes/
     [image-caption]=https://www.reddit.com/r/RemarkableTablet/comments/1twq6mi/how_i_read_news_now/
     [image-gif]=https://www.reddit.com/r/gifs/comments/1u22nvz/eepy_frog/
-    [image-gif-caption]=https://www.reddit.com/user/Tight-Scientist-1031/comments/1umk6d1/title/
+    [image-gif-caption]=https://www.reddit.com/r/IndieDev/comments/1unzm5p/we_combined_drdrift_cyberpunk_2077/
 
     [gallery]=https://www.reddit.com/r/RemarkableTablet/comments/1ulibqk/one_dillion_dots_later_and_this_is_done/
     [gallery-caption]=https://www.reddit.com/r/RemarkableTablet/comments/1u25zob/remarkable_drawings/
     [gallery-gif]=https://www.reddit.com/r/Blockbench/comments/1uk334v/skeleton_knight/
-    [gallery-gif-caption]=https://www.reddit.com/user/Tight-Scientist-1031/comments/1umkdpx/title/
+    [gallery-gif-caption]=https://www.reddit.com/r/songhayoung/comments/1unzfpc/260705_hayoung_instagram_update/
 
     [video]=https://www.reddit.com/r/nextfuckinglevel/comments/1ukshul/2_people_have_climbed_the_empire_state_building/
     [video-caption]=https://www.reddit.com/r/RemarkableTablet/comments/1u9yfdg/received_beta_328_and_its_awesome_so_far/
@@ -45,12 +45,12 @@ declare -A tests=(
     [reply-media]=https://www.reddit.com/r/RemarkableTablet/comments/1ulad9y/comment/ov8ogh1/
 
     [other-noauthor]=https://www.reddit.com/r/pics/comments/i3izcv/first_day_of_school_in_a_georgia_town_one_of_the/
-    [other-deleted]=https://www.reddit.com/user/Tight-Scientist-1031/comments/1umktwo/deleted_post/
+    [other-deleted]=https://www.reddit.com/r/RemarkableTablet/comments/1un7cje/create_bar_appeared_over_pdf_that_does_nothing/
     [other-removed]=https://www.reddit.com/r/whatisit/comments/1uhk9xo/what_on_earth_is_this/
-    [other-user]=https://www.reddit.com/user/Tight-Scientist-1031/comments/1umks6t/title/
-    [other-u]=https://www.reddit.com/u/Tight-Scientist-1031/comments/1umks6t/title/
-    [other-r]=https://www.reddit.com/r/Tight-Scientist-1031/comments/1umks6t/title/
-    [other-r-u]=https://www.reddit.com/r/u_Tight-Scientist-1031/comments/1umks6t/title/
+    [other-user]=https://www.reddit.com/user/YourFat888/comments/1unl820/maybe_the_voices_are_right/
+    [other-u]=https://www.reddit.com/u/YourFat888/comments/1unl820/maybe_the_voices_are_right/
+    [other-r]=https://www.reddit.com/r/YourFat888/comments/1unl820/maybe_the_voices_are_right/
+    [other-r-u]=https://www.reddit.com/r/u_YourFat888/comments/1unl820/maybe_the_voices_are_right/
     [other-invalid-subreddit]=https://www.reddit.com/r/reddit.com/comments/87/the_downing_street_memo/
     [other-alwaysshowmedia]=https://www.reddit.com/r/news/comments/1ulikh0/vatican_excommunicates_all_members_of/
 
@@ -85,21 +85,26 @@ while IFS= read -r name; do
     echo -n "$name - "
 
     set +e
-    out=$(curl -fs "$url")
+    out=$(curl -fs -A "Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)" "$url")
     status=$?
     set -e
 
     if [[ $status != 0 ]]; then
         echo -e "${red}failed${reset} ($status)"
         continue
-    elif [[ $out == *'content="Unknown post type'* ]]; then
-        echo -e "${red}failed${reset} (unknown)"
-        continue
-    elif [[ $out == *'content="Failed to get data from Reddit'* ]]; then
-        echo -e "${red}failed${reset} (data)"
-        continue
-    elif [[ $out == *'content="Internal server error'* ]]; then
-        echo -e "${red}failed${reset} (server)"
+    fi
+
+    error=""
+
+    case "$out" in
+        *'content="Unknown post type'*) error="unknown" ;;
+        *'content="Failed to get data from Reddit'*) error="data" ;;
+        *'content="Internal server error'*) error="server" ;;
+        *'content="Invalid post path'*) error="path" ;;
+    esac
+
+    if [[ -n $error ]]; then
+        echo -e "${red}failed${reset} ($error)"
         continue
     fi
 
