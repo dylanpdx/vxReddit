@@ -92,14 +92,17 @@ while IFS= read -r name; do
     if [[ $status != 0 ]]; then
         echo -e "${red}failed${reset} ($status)"
         continue
-    elif [[ $out == *'content="Unknown post type'* ]]; then
-        echo -e "${red}failed${reset} (unknown)"
-        continue
-    elif [[ $out == *'content="Failed to get data from Reddit'* ]]; then
-        echo -e "${red}failed${reset} (data)"
-        continue
-    elif [[ $out == *'content="Internal server error'* ]]; then
-        echo -e "${red}failed${reset} (server)"
+    fi
+
+    case "$out" in
+        *'content="Unknown post type'*) error="unknown" ;;
+        *'content="Failed to get data from Reddit'*) error="data" ;;
+        *'content="Internal server error'*) error="server" ;;
+        *'content="Invalid post path'*) error="path" ;;
+    esac
+
+    if [[ -n ${error:-} ]]; then
+        echo -e "${red}failed${reset} ($error)"
         continue
     fi
 

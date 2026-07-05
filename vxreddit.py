@@ -27,6 +27,13 @@ bot_pattern = re.compile(
     )
 )
 
+
+template_args = {
+    "app_name": config.currentConfig["MAIN"]["appName"],
+    "domain_name": config.currentConfig["MAIN"]["domainName"],
+    "embed_color": config.currentConfig["MAIN"]["embedColor"],
+}
+
 r_headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
     "Cookie": os.environ.get("REDDIT_COOKIE"),
@@ -199,7 +206,7 @@ def get_embed_info_from_url_praw(post_id, comment_id):
 
     try:
         post._fetch()
-    except prawcore.Forbidden:
+    except prawcore.ResponseException:
         return None
 
     if comment_id:
@@ -297,19 +304,13 @@ def get_embed_info(post_id, comment_id):
 
 
 def embed_reddit(post_id, comment_id):
-    if post_id is None:
-        abort(404)
-
-    args = {
-        "app_name": config.currentConfig["MAIN"]["appName"],
-        "domain_name": config.currentConfig["MAIN"]["domainName"],
-        "embed_color": config.currentConfig["MAIN"]["embedColor"],
-        "redirect_url": id_to_url(post_id, comment_id),
-    }
+    args = template_args.copy()
+    args["redirect_url"] = id_to_url(post_id, comment_id)
 
     try:
         embed_info = get_embed_info(post_id, comment_id)
     except Exception as e:
+        app.logger.exception("Internal server error")
         return render_template(
             "message.html",
             message=f"Internal server error: {type(e).__name__}: {e}",
@@ -317,6 +318,7 @@ def embed_reddit(post_id, comment_id):
         )
 
     if not embed_info:
+        app.logger.warning(f"Failed to get data from Reddit: {args['redirect_url']}")
         return render_template(
             "message.html",
             message="Failed to get data from Reddit",
@@ -348,6 +350,7 @@ def embed_reddit(post_id, comment_id):
             )
         return render_template("video.html", video_url=converted_url, **args)
     else:
+        app.logger.warning(f"Unkown post type: {args['redirect_url']}")
         return render_template(
             "message.html",
             message="Unknown post type",
@@ -439,14 +442,25 @@ def validate_path(path):
 
 @app.route("/<path:path>")
 def embedReddit(path):
+    reddit_path = "https://www.reddit.com/" + path
+
     is_bot = bot_pattern.search(request.headers.get("User-Agent", ""))
 
     if not is_bot:
-        response = redirect("https://www.reddit.com/" + path)
+        response = redirect(reddit_path)
         response.headers["Cache-Control"] = "no-store"
         return response
 
     post_id, comment_id = validate_path(clean_path(path))
+
+    if post_id is None:
+        app.logger.info(f"Invalid post path: /{path}")
+        return render_template(
+            "message.html",
+            message="Invalid post path",
+            redirect_url=reddit_path,
+            **template_args,
+        )
 
     return embed_reddit(post_id, comment_id)
 
