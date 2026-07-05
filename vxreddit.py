@@ -442,7 +442,9 @@ def embedReddit(path):
     is_bot = bot_pattern.search(request.headers.get("User-Agent", ""))
 
     if not is_bot:
-        return redirect("https://www.reddit.com/" + path)
+        response = redirect("https://www.reddit.com/" + path)
+        response.headers["Cache-Control"] = "no-store"
+        return response
 
     post_id, comment_id = validate_path(clean_path(path))
 
