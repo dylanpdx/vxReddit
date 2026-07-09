@@ -260,8 +260,25 @@ def build_stats_line(embed_info):
     return stats_line
 
 
+def send_video(b64):
+    if not b64:
+        abort(400)
+
+    return send_file(io.BytesIO(base64.b64decode(b64)), mimetype="video/mp4")
+
+
 @app.route("/redditvideo.mp4")
 def get_video():
+    renderer = config.currentConfig["MAIN"]["videoConversion"]
+
+    if renderer != "local":
+        return redirect(f"{renderer}?{request.query_string.decode()}", code=307)
+
+    id = request.args.get("id", "")
+
+    if id:
+        return send_video(videoCombiner.video_from_id(id))
+
     video_url = request.args.get("video_url", "")
     audio_url = request.args.get("audio_url", "")
 
@@ -276,19 +293,7 @@ def get_video():
     if not audio_url:
         return redirect(video_url)
 
-    if config.currentConfig["MAIN"]["videoConversion"] == "local":
-        b64 = videoCombiner.generateVideo(video_url, audio_url)
-
-        return send_file(io.BytesIO(base64.b64decode(b64)), mimetype="video/mp4")
-    else:
-        renderer = config.currentConfig["MAIN"]["videoConversion"]
-
-        video_url = urllib.parse.quote(video_url, safe="")
-        audio_url = urllib.parse.quote(audio_url, safe="")
-
-        return redirect(
-            f"{renderer}?video_url={video_url}&audio_url={audio_url}", code=307
-        )
+    return send_video(videoCombiner.combine_videos(video_url, audio_url))
 
 
 def get_embed_info(post_id, comment_id):
