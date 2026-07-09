@@ -285,13 +285,13 @@ def get_video():
     if not video_url:
         abort(400)
 
+    if not audio_url:
+        return redirect(video_url)
+
     if not video_url.startswith("https://v.redd.it/") or not audio_url.startswith(
         "https://v.redd.it/"
     ):
         abort(400)
-
-    if not audio_url:
-        return redirect(video_url)
 
     return send_video(videoCombiner.combine_videos(video_url, audio_url))
 
