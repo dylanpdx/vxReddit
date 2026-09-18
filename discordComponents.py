@@ -6,7 +6,7 @@ def build_text_components(embed_info,post_url):
     component = {
         "component":{
             "type":17,
-            "accent_color": int(config.currentConfig["MAIN"]["embedcolor"].replace("#","0x"),16),
+            "accent_color": int(config.currentConfig["MAIN"]["embedcolor"].replace("#","0x").replace("\\",""),16),
             "components":[
                 {
                     "type":10,
@@ -46,8 +46,11 @@ def build_image_components(embed_info,post_url):
     return component
 
 def build_components(embed_info,post_url):
-    if embed_info["post_type"] in ("image", "gallery"):
-        return build_image_components(embed_info,post_url)
-    elif embed_info["post_type"] in ("text", "link"):
-        return build_text_components(embed_info,post_url)
-    return None
+    try:
+        if embed_info["post_type"] in ("image", "gallery"):
+            return build_image_components(embed_info,post_url)
+        elif embed_info["post_type"] in ("text", "link"):
+            return build_text_components(embed_info,post_url)
+        return None
+    except:
+        return None
