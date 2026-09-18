@@ -26,6 +26,12 @@
             title="{{ embed_info['title'] }}"
         />
 
+        {% if discord_components %}
+        <script id="discord:component-embed" type="application/json">
+            {{ discord_components | tojson }}
+        </script>
+        {% endif %}
+
         {% block head %}{% endblock %}
     </head>
 

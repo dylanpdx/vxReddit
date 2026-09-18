@@ -14,6 +14,8 @@ from flask_cors import CORS
 
 import config
 import videoCombiner
+from utils import build_stats_line
+from discordComponents import build_components
 
 app = Flask(__name__)
 CORS(app)
@@ -247,19 +249,6 @@ def get_embed_info_from_url_praw(post_id, comment_id):
     return embed_info_from_post(post_info)
 
 
-def build_stats_line(embed_info):
-    author = embed_info["author"]
-    subreddit = embed_info["subreddit"]
-    upvotes = embed_info["upvotes"]
-    stats_line = f"u/{author} on {subreddit} - ⬆️ {upvotes}"
-
-    comments = embed_info["comments"]
-    if comments is not None:
-        stats_line += f" | 💬 {comments}"
-
-    return stats_line
-
-
 def send_video(b64):
     if not b64:
         abort(400)
@@ -333,6 +322,7 @@ def embed_reddit(post_id, comment_id):
     args |= {
         "embed_info": embed_info,
         "stats_line": build_stats_line(embed_info),
+        "discord_components":build_components(embed_info, args["redirect_url"])
     }
 
     if embed_info["post_type"] in ("text", "link"):
