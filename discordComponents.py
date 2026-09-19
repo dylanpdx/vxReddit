@@ -19,14 +19,18 @@ def build_text_components(embed_info,post_url):
                 {
                     "type":10,
                     "content":f"## {embed_info['title']}"
-                },
-                {
-                    "type":10,
-                    "content":f'{embed_info["text"]}'
                 }
             ]
         }
     }
+
+    if embed_info["text"] != None and embed_info["text"] != "":
+        component["component"]["components"].append(
+        {
+            "type":10,
+            "content":f'{embed_info["text"]}'
+        })
+
     return component
 
 def build_image_components(embed_info,post_url):
