@@ -322,7 +322,7 @@ def embed_reddit(post_id, comment_id):
     args |= {
         "embed_info": embed_info,
         "stats_line": build_stats_line(embed_info),
-        "discord_components":build_components(embed_info, args["redirect_url"])
+        #"discord_components":build_components(embed_info, args["redirect_url"]) # Temporarily disabled, see https://github.com/dylanpdx/vxReddit/issues/22
     }
 
     if embed_info["post_type"] in ("text", "link"):
