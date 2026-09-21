@@ -297,7 +297,7 @@ def get_embed_info(post_id, comment_id):
     return None
 
 
-def embed_reddit(post_id, comment_id):
+def embed_reddit(post_id, comment_id,legacy):
     args = template_args.copy()
     args["redirect_url"] = id_to_url(post_id, comment_id)
 
@@ -319,10 +319,14 @@ def embed_reddit(post_id, comment_id):
             **args,
         )
 
+    components = None
+    if not legacy:
+        components = build_components(embed_info, args["redirect_url"])
+
     args |= {
         "embed_info": embed_info,
         "stats_line": build_stats_line(embed_info),
-        #"discord_components":build_components(embed_info, args["redirect_url"]) # Temporarily disabled, see https://github.com/dylanpdx/vxReddit/issues/22
+        "discord_components":components
     }
 
     if embed_info["post_type"] in ("text", "link"):
@@ -457,7 +461,7 @@ def embedReddit(path):
             **template_args,
         )
 
-    return embed_reddit(post_id, comment_id)
+    return embed_reddit(post_id, comment_id,'legacy' in request.args or 'l' in request.args)
 
 
 if __name__ == "__main__":
